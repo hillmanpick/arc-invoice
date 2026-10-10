@@ -1,0 +1,70 @@
+{
+  "checkedAt": "2026-10-10T06:51:39.564Z",
+  "rpc": "https://rpc.mainnet.arc.io",
+  "chainId": 5042,
+  "transaction": {
+    "type": "0x2",
+    "chainId": "0x13b2",
+    "nonce": "0x0",
+    "gas": "0x88bc",
+    "maxFeePerGas": "0x596835f9f",
+    "maxPriorityFeePerGas": "0x6f9f",
+    "to": "0xab9e4362ced96d403dab09e0561aded7b20e96d6",
+    "value": "0x2386f26fc10000",
+    "accessList": [],
+    "input": "0x417263496e766f6963653a76313a33646632653865342d616666342d343762642d383932342d613432346663363832656534",
+    "r": "0x74fcc9f9327eba3c70ef427567c9ea0ae94e4cd84e25a125ea1e3775b2c69973",
+    "s": "0x102b254f6e62031c341eb38c542e7292eeaceb2ef19eaae50e19fad1697828e2",
+    "yParity": "0x1",
+    "v": "0x1",
+    "hash": "0x5f0c162e485a55f72891c7acbee4a199bf4fe92eb187a37bdd67e6e0eeb1b25f",
+    "blockHash": "0xfe4fbb5544c4b8d3a3f4408772c19bcbbf342ce5cccca508b70f52fab9728e3b",
+    "blockNumber": "0x1807bb7",
+    "transactionIndex": "0x2",
+    "from": "0x77048bf5b1f82460e049c85153ad356b488f7c4e",
+    "gasPrice": "0x4a818379f",
+    "blockTimestamp": "0x6ac9d8b5"
+  },
+  "receipt": {
+    "type": "0x2",
+    "status": "0x1",
+    "cumulativeGasUsed": "0x3b59a",
+    "logs": [
+      {
+        "address": "0xfffffffffffffffffffffffffffffffffffffffe",
+        "topics": [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x00000000000000000000000077048bf5b1f82460e049c85153ad356b488f7c4e",
+          "0x000000000000000000000000ab9e4362ced96d403dab09e0561aded7b20e96d6"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000000002386f26fc10000",
+        "blockHash": "0xfe4fbb5544c4b8d3a3f4408772c19bcbbf342ce5cccca508b70f52fab9728e3b",
+        "blockNumber": "0x1807bb7",
+        "blockTimestamp": "0x6ac9d8b5",
+        "transactionHash": "0x5f0c162e485a55f72891c7acbee4a199bf4fe92eb187a37bdd67e6e0eeb1b25f",
+        "transactionIndex": "0x2",
+        "logIndex": "0x6",
+        "removed": false
+      }
+    ],
+    "logsBloom": "0x00001000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000008000000000000000004000000000000000000000000000000000000002000000000000000400000000000000000000010000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000008000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000",
+    "transactionHash": "0x5f0c162e485a55f72891c7acbee4a199bf4fe92eb187a37bdd67e6e0eeb1b25f",
+    "transactionIndex": "0x2",
+    "blockHash": "0xfe4fbb5544c4b8d3a3f4408772c19bcbbf342ce5cccca508b70f52fab9728e3b",
+    "blockNumber": "0x1807bb7",
+    "gasUsed": "0x59d8",
+    "effectiveGasPrice": "0x4a818379f",
+    "from": "0x77048bf5b1f82460e049c85153ad356b488f7c4e",
+    "to": "0xab9e4362ced96d403dab09e0561aded7b20e96d6",
+    "contractAddress": null
+  },
+  "block": {
+    "hash": "0xfe4fbb5544c4b8d3a3f4408772c19bcbbf342ce5cccca508b70f52fab9728e3b",
+    "number": "0x1807bb7",
+    "timestamp": "0x6ac9d8b5"
+  },
+  "recipientCode": "0x",
+  "invoiceId": "3df2e8e4-aff4-47bd-8924-a424fc682ee4",
+  "amountUSDC": "0.01",
+  "verification": "Successful Arc mainnet native USDC transfer with exact recipient, amount and invoice reference; transaction and receipt block hashes match."
+}

@@ -1,6 +1,6 @@
 # Arc Invoice
 
-Arc 主网 USDC 收款与对账演示。商户创建订单 → 分享链接 → 用户在自己的钱包签名 → 服务端核验主网交易 → 生成到账记录。
+USDC payment links and invoice reconciliation on **Arc mainnet**. A merchant creates an invoice, a customer pays from their own wallet, and the server matches the successful onchain transfer to the invoice.
 
 **Live demo:** https://170.106.189.16.sslip.io:8443
 
@@ -8,7 +8,38 @@ Arc 主网 USDC 收款与对账演示。商户创建订单 → 分享链接 → 
 
 Arc Invoice is a small merchant checkout and reconciliation tool on Arc. Customers pay native USDC directly from their wallets; the server verifies successful onchain transfers and invoice references, and prevents duplicate reconciliation.
 
-这是可部署的开发原型。源码交付不等于完成活动申请：必须在你的服务器上运行，完成真实主网付款验证，再提交仓库和网址。
+**Status (2026-10-10):** deployed prototype with one successful, user-signed 0.01 USDC payment on Arc mainnet. This demonstrates the checkout-to-receipt flow; it is not evidence of independent customer adoption or production scale.
+
+## Review the working project
+
+- [Live app](https://170.106.189.16.sslip.io:8443)
+- [Verified invoice / public receipt](https://170.106.189.16.sslip.io:8443/pay/3df2e8e4-aff4-47bd-8924-a424fc682ee4) — opens without a merchant login or another payment.
+- [Successful Arc transaction](https://explorer.arc.io/tx/0x5f0c162e485a55f72891c7acbee4a199bf4fe92eb187a37bdd67e6e0eeb1b25f)
+- [Builder profile](https://github.com/hillmanpick)
+- [Submission text and eligibility declarations](SUBMISSION.md)
+- [Recorded mainnet evidence and reproduction steps](docs/MAINNET_PROOF.md)
+
+![Successful mainnet invoice receipt](docs/mainnet-receipt.jpg)
+
+## Why Arc
+
+The intended use case is a small merchant who can receive a wallet transfer but needs to know which invoice it settles. Arc Invoice uses Arc mainnet (chain ID **5042**) for native USDC payments and USDC gas fees. Each transaction carries `ArcInvoice:v1:<invoice UUID>` in its data field. This binds the payment to an invoice rather than inferring it from a wallet balance change.
+
+The server checks the chain, receipt success, transaction/block consistency, exact recipient and amount, invoice reference, and invoice creation time before marking it paid. Native USDC amounts use **18 decimals**, with string/BigInt arithmetic; the separate six-decimal ERC-20 interface is not used. A unique transaction hash prevents one payment from settling two invoices.
+
+This prototype uses ordinary Arc transactions rather than a custom payment contract. It has no app-held signing keys and no custom contract to deploy or audit, but does not support internal smart-wallet transfers or arbitrary transfers without the invoice reference. The implementation uses EVM-compatible tooling and is configured and verified on Arc; it does not claim a new consensus mechanism or exclusive protocol innovation.
+
+## Quality, scope and next steps
+
+- English by default, with persistent Chinese/English switching and responsive layouts.
+- Automatic receipt verification when a transaction hash is available, plus automatic order-state refresh across open checkout pages.
+- Five payment/database tests cover precision, invalid transfers and duplicate settlement; production builds and browser checks are recorded in [VALIDATION.md](VALIDATION.md).
+- SQLite WAL storage in a persistent server Docker volume, checked daily backups, and a downloaded backup snapshot. Continuous offsite backup sync is not configured.
+- Current scope: one merchant, one app instance, public invoice links, ordinary recipient wallets, and native-USDC transfers through the checkout flow. Merchant invoice creation requires an admin login; reviewer receipt inspection does not.
+
+Next priorities are continuously automated offsite backups, broader wallet compatibility checks, clearer RPC failure recovery, and database/rate-limit changes before multi-instance use. Refunds, a background chain indexer, contract-wallet internal transfers, and high-volume operation are not implemented. One real payment and the current test suite do not constitute a security audit.
+
+Arc 主网 USDC 收款与对账原型已上线，并已完成一笔真实主网付款验证。活动材料已整理，但仍需在 DoraHacks 提交作品；上线不等于获奖。
 
 ## 环境
 
@@ -121,7 +152,7 @@ sudo systemctl reload caddy
 1. HTTPS 打开首页，在商户工作台登录。
 2. 创建 0.01 USDC 订单；复制链接并用另一个付款钱包打开。
 3. 在钱包确认 Arc 主网、收款地址、0.01 USDC 金额与手续费。
-4. 签名付款。页面保存交易哈希并在约一分钟内有限次轮询到账；超时后保留哈希，手动重试核验，避免重复付款。
+4. 签名付款。页面保存交易哈希并自动核验到账；暂时故障后降频继续重试。页面可见时每 4 秒读取订单状态，确认后自动显示凭证。保留哈希，避免重复付款。
 5. 确认页面显示已付款，主网浏览器显示交易成功。
 6. 回工作台刷新，确认到账记录存在。重启容器后记录仍应保留。
 7. 失败交易、金额不符、其他订单的交易均不能标记为到账。
@@ -146,7 +177,7 @@ SQLite 数据保存在服务器的 Docker 命名卷 `invoice-data`，本机开�
 
 迁移到 PostgreSQL/托管数据库适合多实例、高并发和独立运维，但不能免除备份。链上交易不会因数据库丢失而消失；订单说明、订单与交易的对应关系等应用数据仍需要数据库备份恢复。
 
-代码构建和模拟测试不代替 Arc 主网验证。首次真实付款必须由钱包持有人确认；本项目交付时没有替你执行任何资金交易。
+代码构建和模拟测试不代替 Arc 主网验证。2026-10-10 钱包持有人亲自签名完成一笔 0.01 USDC 主网付款，证据见 [MAINNET_PROOF.md](docs/MAINNET_PROOF.md)。自动化助手没有替持有人签名或发送资金。
 
 ## Interface languages / 界面语言
 
@@ -164,6 +195,6 @@ Pending checkout pages read the latest invoice every four seconds while visible,
 
 说明：Arc Invoice is a small merchant checkout and reconciliation tool on Arc. Merchants create USDC payment links; customers pay directly from their wallets. The server verifies native-USDC transfers, invoice references and successful receipts on Arc mainnet, and prevents duplicate reconciliation.
 
-添加你的公开运行网址、GitHub 仓库和开发者主页。README 里补一笔真实主网演示交易链接与操作截图；只有实际部署并验证成功后，才写“已在主网运行”。
+完整英文说明、演示入口、评审证据和提交者资格声明见 [SUBMISSION.md](SUBMISSION.md)。
 
 活动：https://dorahacks.io/hackathon/arc-microgrants/detail
