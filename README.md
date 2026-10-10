@@ -148,6 +148,12 @@ SQLite 数据保存在服务器的 Docker 命名卷 `invoice-data`，本机开�
 
 代码构建和模拟测试不代替 Arc 主网验证。首次真实付款必须由钱包持有人确认；本项目交付时没有替你执行任何资金交易。
 
+## Interface languages / 界面语言
+
+The interface defaults to English. Use **EN / 中文** in the header to switch instantly. The selected language is saved for one year in the `arc_invoice_locale` cookie and read during server rendering, so navigation and reloads keep the same language. Browser language settings do not override the English default.
+
+首页、商户工作台、付款页、未找到订单页和应用错误提示支持中英文。日期跟随所选语言格式显示。翻译表位于 `lib/translations.ts`，React Context 共享语言状态，无外部翻译 API 或新增依赖。订单说明等用户输入内容保持原文；第三方钱包自身提示由钱包控制。
+
 ## 活动提交说明模板
 
 项目名称：Arc Invoice

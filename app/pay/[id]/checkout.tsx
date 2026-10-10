@@ -1,4 +1,5 @@
 'use client';
+import { useI18n, LanguageSwitch } from '@/app/components/i18n';
 import { useEffect, useState } from 'react';
 import { createWalletClient, custom, publicActions, parseUnits, parseGwei, type EIP1193Provider, type Hash, type Address } from 'viem';
 import { arc, invoiceData } from '@/lib/arc';
@@ -7,6 +8,7 @@ import { Brand } from '../../components/brand';
 declare global { interface Window { ethereum?: EIP1193Provider } }
 interface WalletOption { provider: EIP1193Provider; info: { uuid: string; name: string } }
 export function Checkout({ initial }: { initial: Invoice }) {
+  const { t, dateLocale } = useI18n();
   const [invoice, setInvoice] = useState(initial);
   const [wallets, setWallets] = useState<WalletOption[]>([]);
   const [selectedWallet, setSelectedWallet] = useState('');
@@ -118,25 +120,25 @@ export function Checkout({ initial }: { initial: Invoice }) {
     finally { setBusy(false); }
   }
   return <main className="shell checkout-shell">
-    <nav><Brand /><span className="network-badge"><span className="dot" /> Arc 主网</span></nav>
-    <div className="checkout-heading"><div className="eyebrow">YOUR PAYMENT, ONCHAIN</div><h1>完成付款，留下凭证。</h1><p>在钱包中核对并确认，资金直接到达收款方。</p></div>
+    <nav><Brand /><div className="nav-actions"><LanguageSwitch /><span className="network-badge"><span className="dot" />{t("Arc 主网")}</span></div></nav>
+    <div className="checkout-heading"><div className="eyebrow">{t("YOUR PAYMENT, ONCHAIN")}</div><h1>{t("完成付款，留下凭证。")}</h1><p>{t("在钱包中核对并确认，资金直接到达收款方。")}</p></div>
     <div className="checkout-layout"><aside className="payment-summary">
-      <div className="eyebrow">ORDER SUMMARY</div><h2>{invoice.description}</h2><span className="amount-label">应付金额</span>
+      <div className="eyebrow">{t("ORDER SUMMARY")}</div><h2>{invoice.description}</h2><span className="amount-label">{t("应付金额")}</span>
       <div className="payment-amount">{invoice.amount}<span>USDC</span></div>
-      <span className={`status ${invoice.status}`}>{invoice.status === 'paid' ? '已付款 · 链上确认' : '等待付款'}</span>
-      <dl><dt>收款地址</dt><dd className="mono">{invoice.recipient}</dd><dt>订单编号</dt><dd className="mono">{invoice.id}</dd><dt>付款网络</dt><dd>Arc 主网</dd></dl>
-      <div className="summary-note"><span>↗</span><p>钱包直接付款<br /><small>此网站不保管你的资金或私钥。</small></p></div>
+      <span className={`status ${invoice.status}`}>{invoice.status === 'paid' ? t("已付款 · 链上确认") : t("等待付款")}</span>
+      <dl><dt>{t("收款地址")}</dt><dd className="mono">{invoice.recipient}</dd><dt>{t("订单编号")}</dt><dd className="mono">{invoice.id}</dd><dt>{t("付款网络")}</dt><dd>{t("Arc 主网")}</dd></dl>
+      <div className="summary-note"><span>↗</span><p>{t("钱包直接付款")}<br /><small>{t("此网站不保管你的资金或私钥。")}</small></p></div>
     </aside><section className="checkout card">
-      <div className="checkout-section-top"><span className="step-icon">{invoice.status === 'paid' ? '✓' : '◎'}</span><div><h2>{invoice.status === 'paid' ? '付款凭证' : '使用钱包支付'}</h2><p className="muted">{invoice.status === 'paid' ? '这笔订单已通过链上核验。' : '连接钱包，在 Arc 上完成这笔订单。'}</p></div></div>
+      <div className="checkout-section-top"><span className="step-icon">{invoice.status === 'paid' ? '✓' : '◎'}</span><div><h2>{invoice.status === 'paid' ? t("付款凭证") : t("使用钱包支付")}</h2><p className="muted">{invoice.status === 'paid' ? t("这笔订单已通过链上核验。") : t("连接钱包，在 Arc 上完成这笔订单。")}</p></div></div>
       {invoice.status === 'pending' ? <>
-        {wallets.length > 1 && <><label htmlFor="wallet">选择钱包</label><select id="wallet" value={selectedWallet} onChange={e => { setSelectedWallet(e.target.value); setAccount(null); }}><option value="">请选择</option>{wallets.map(w => <option key={w.info.uuid} value={w.info.uuid}>{w.info.name}</option>)}</select></>}
-        {account && <p className="hint mono">连接的钱包：{account}</p>}
-        <div className="checkout-actions"><button className="button secondary" disabled={busy} onClick={connect}>{account ? '重新连接钱包' : '连接钱包'} <span>↗</span></button><button className="button primary" disabled={busy || Boolean(hash.trim())} onClick={pay}>{busy ? '处理中…' : `支付 ${invoice.amount} USDC →`}</button></div>
-        <p className="hint">使用钱包签名付款，网络手续费另计。请在钱包确认前核对地址与金额。</p>
-        <div className="verification"><label htmlFor="hash">已提交交易？核验到账</label><input id="hash" placeholder="0x… 交易哈希" value={hash} onChange={e => setHash(e.target.value)} autoComplete="off" /><button className="button secondary" disabled={busy || !hash.trim()} onClick={() => verify()}>核验这笔交易</button>{/^0x[0-9a-fA-F]{64}$/.test(hash) && <a className="transaction-link" href={`https://explorer.arc.io/tx/${hash as Hash}`} target="_blank" rel="noreferrer">查看交易状态 ↗</a>}</div>
-      </> : <div className="receipt"><h2>付款完成</h2><p>付款时间：{invoice.paidAt ? new Date(invoice.paidAt).toLocaleString('zh-CN') : ''}</p><a className="button primary" href={`https://explorer.arc.io/tx/${invoice.txHash}`} target="_blank" rel="noreferrer">查看链上凭证 ↗</a></div>}
-      {message && <div className="notice" role="status">{message}</div>}
+        {wallets.length > 1 && <><label htmlFor="wallet">{t("选择钱包")}</label><select id="wallet" value={selectedWallet} onChange={e => { setSelectedWallet(e.target.value); setAccount(null); }}><option value="">{t("请选择")}</option>{wallets.map(w => <option key={w.info.uuid} value={w.info.uuid}>{w.info.name}</option>)}</select></>}
+        {account && <p className="hint mono">{t("连接的钱包：")}{account}</p>}
+        <div className="checkout-actions"><button className="button secondary" disabled={busy} onClick={connect}>{account ? t("重新连接钱包") : t("连接钱包")} <span>↗</span></button><button className="button primary" disabled={busy || Boolean(hash.trim())} onClick={pay}>{busy ? t("处理中…") : t("支付 {amount} USDC →", { amount: invoice.amount })}</button></div>
+        <p className="hint">{t("使用钱包签名付款，网络手续费另计。请在钱包确认前核对地址与金额。")}</p>
+        <div className="verification"><label htmlFor="hash">{t("已提交交易？核验到账")}</label><input id="hash" placeholder={t("0x… 交易哈希")} value={hash} onChange={e => setHash(e.target.value)} autoComplete="off" /><button className="button secondary" disabled={busy || !hash.trim()} onClick={() => verify()}>{t("核验这笔交易")}</button>{/^0x[0-9a-fA-F]{64}$/.test(hash) && <a className="transaction-link" href={`https://explorer.arc.io/tx/${hash as Hash}`} target="_blank" rel="noreferrer">{t("查看交易状态 ↗")}</a>}</div>
+      </> : <div className="receipt"><h2>{t("付款完成")}</h2><p>{t("付款时间：")}{invoice.paidAt ? new Date(invoice.paidAt).toLocaleString(dateLocale) : ''}</p><a className="button primary" href={`https://explorer.arc.io/tx/${invoice.txHash}`} target="_blank" rel="noreferrer">{t("查看链上凭证 ↗")}</a></div>}
+      {message && <div className="notice" role="status">{t(message)}</div>}
     </section></div>
-    <footer><span>Arc Invoice / Checkout</span><span>资金由钱包直接支付给收款方。</span></footer>
+    <footer><span>Arc Invoice / Checkout</span><span>{t("资金由钱包直接支付给收款方。")}</span></footer>
   </main>;
 }

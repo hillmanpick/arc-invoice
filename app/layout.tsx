@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { I18nProvider } from './components/i18n';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'Arc Invoice · USDC 收款与对账',
-  description: '在 Arc 上创建 USDC 付款链接，以链上交易核验订单。',
+  title: 'Arc Invoice · USDC payments & reconciliation',
+  description: 'Create USDC payment links on Arc and reconcile invoices with onchain receipts.',
   robots: { index: false, follow: false },
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="zh-CN"><body>{children}</body></html>;
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = (await cookies()).get('arc_invoice_locale')?.value === 'zh' ? 'zh' : 'en';
+  return <html lang={locale === 'zh' ? 'zh-CN' : 'en'}><body><I18nProvider initialLocale={locale}>{children}</I18nProvider></body></html>;
 }
