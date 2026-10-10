@@ -58,3 +58,13 @@ git push -u origin main
 先在 GitHub 创建空的公开仓库。确认暂存清单中没有 `.env`、数据库、私钥或口令。`.gitignore` 已排除环境文件、构建文件和数据目录。
 
 申请前必须完成：网站公网 HTTPS 可访问、真实 Arc 主网付款并成功核验、公开仓库、开发者主页。在实际验证前不要宣称主网付款已完成。
+
+## 数据位置与恢复
+
+应用读取 `/app/data/invoices.sqlite`，实际挂载服务器数据卷 `arc-invoice_invoice-data`，宿主机路径 `/var/lib/docker/volumes/arc-invoice_invoice-data/_data`。它与开发电脑数据库没有同步关系。
+
+手动备份：`bash /home/ubuntu/arc-invoice/scripts/backup-server.sh`。备份目录为 `/home/ubuntu/arc-invoice-backups`；每天备份由 `arc-invoice-backup.timer` 触发。检查 `systemctl list-timers arc-invoice-backup.timer` 和 `journalctl -u arc-invoice-backup.service`。
+
+服务器备份目录可防止误删应用卷，但服务器整盘损坏时仍会丢失同盘备份。定期复制到另一台电脑或独立存储。当前快照已下载到开发工作目录作为独立副本，没有放进公开源码仓库。
+
+恢复时先停止应用，将确认完整的备份恢复到原数据卷，再启动；恢复操作应在保留当前数据库副本后进行。不要在运行中覆盖主数据库或混用旧 WAL 文件。

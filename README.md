@@ -138,7 +138,13 @@ npm run build
 
 测试覆盖精度、错误网络/地址/金额、回执失败、订单绑定、旧交易和重复入账。管理口令和会话使用 HttpOnly Cookie；登录尝试有限额、核验 RPC 并发有限额。当前限额是单进程演示级保护，公开长期服务应加持久化限流、告警和数据库备份。
 
-SQLite 数据保存在 Docker 命名卷 `invoice-data`。`docker compose down` 保留数据，`docker compose down -v` 会删除数据卷，避免误执行。备份应停应用再复制数据库，或使用 SQLite backup API，不要在写入期间只复制主文件而漏掉 WAL。
+SQLite 数据保存在服务器的 Docker 命名卷 `invoice-data`，本机开发数据库和线上数据库互相独立。本机删除数据库不会影响服务器。普通重启和 `docker compose down` 保留数据，`docker compose down -v` 会删除数据卷，避免误执行。
+
+运行 `bash scripts/backup-server.sh` 会使用 Node SQLite 在线 backup API 创建一致快照，检查完整性，并将备份复制到服务器 `/home/ubuntu/arc-invoice-backups`。它包含已提交的 WAL 数据，无需停止应用。该 API 要求 Node 22.16 以上；Docker Node 22 当前镜像支持。
+
+`scripts/arc-invoice-backup.service` 和 `.timer` 提供每天一次的备份（按服务器时区运行），需要按部署目录和 Linux 用户调整后安装到 `/etc/systemd/system`。备份目录与数据库卷仍处于同一台服务器，不能替代异地备份；应定期将备份复制到独立电脑或对象存储。不要在数据库写入期间只复制主文件而漏掉 WAL。
+
+迁移到 PostgreSQL/托管数据库适合多实例、高并发和独立运维，但不能免除备份。链上交易不会因数据库丢失而消失；订单说明、订单与交易的对应关系等应用数据仍需要数据库备份恢复。
 
 代码构建和模拟测试不代替 Arc 主网验证。首次真实付款必须由钱包持有人确认；本项目交付时没有替你执行任何资金交易。
 
