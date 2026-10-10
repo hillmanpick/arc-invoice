@@ -21,6 +21,8 @@ Arc Invoice is a small merchant checkout and reconciliation tool on Arc. Custome
 
 ![Successful mainnet invoice receipt](docs/mainnet-receipt.jpg)
 
+![Successful 0.01 USDC transaction on Arc Explorer](docs/arc-explorer-transaction.png)
+
 ## Why Arc
 
 The intended use case is a small merchant who can receive a wallet transfer but needs to know which invoice it settles. Arc Invoice uses Arc mainnet (chain ID **5042**) for native USDC payments and USDC gas fees. Each transaction carries `ArcInvoice:v1:<invoice UUID>` in its data field. This binds the payment to an invoice rather than inferring it from a wallet balance change.
@@ -188,13 +190,3 @@ The interface defaults to English. Use **EN / 中文** in the header to switch i
 ## Automatic payment updates
 
 Pending checkout pages read the latest invoice every four seconds while visible, and immediately when returning to the tab. A confirmed invoice switches to its receipt automatically and stops polling. These reads bypass caches and do not require a locally saved transaction hash. If a hash is available, onchain verification continues after temporary RPC failures, slowing to once every 30 seconds after the first 12 attempts. Invalid transactions are not retried.
-
-## 活动提交说明模板
-
-项目名称：Arc Invoice
-
-说明：Arc Invoice is a small merchant checkout and reconciliation tool on Arc. Merchants create USDC payment links; customers pay directly from their wallets. The server verifies native-USDC transfers, invoice references and successful receipts on Arc mainnet, and prevents duplicate reconciliation.
-
-完整英文说明、演示入口、评审证据和提交者资格声明见 [SUBMISSION.md](SUBMISSION.md)。
-
-活动：https://dorahacks.io/hackathon/arc-microgrants/detail

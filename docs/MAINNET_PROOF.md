@@ -18,6 +18,8 @@ On October 10, 2026, the wallet owner signed a real 0.01 USDC payment through Ar
 
 ![Live confirmed invoice](mainnet-receipt.jpg)
 
+![Arc Explorer showing the successful 0.01 USDC transaction](arc-explorer-transaction.png)
+
 The words “待付款” in the description were entered when the demonstration invoice was created; the actual status is `paid`. The screenshot is supporting UI evidence. The public transaction and RPC results provide independently checkable evidence. One developer demonstration payment is not a claim of external users or production volume.
 
 ## Reproduce without making a payment
