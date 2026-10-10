@@ -35,13 +35,14 @@ This prototype uses ordinary Arc transactions rather than a custom payment contr
 
 - English by default, with persistent Chinese/English switching and responsive layouts.
 - Automatic receipt verification when a transaction hash is available, plus automatic order-state refresh across open checkout pages.
-- Five payment/database tests cover precision, invalid transfers and duplicate settlement; production builds and browser checks are recorded in [VALIDATION.md](VALIDATION.md).
+- Nine payment/database tests cover precision, invalid transfers, required payers, legacy database migration, address history and duplicate settlement; production builds and browser checks are recorded in [VALIDATION.md](VALIDATION.md).
+- Choose a recipient for each invoice and optionally require a specific payer. Authenticated address history supports reuse of previous recipients and verified payers.
 - SQLite WAL storage in a persistent server Docker volume, checked daily backups, and a downloaded backup snapshot. Continuous offsite backup sync is not configured.
-- Current scope: one merchant, one app instance, public invoice links, ordinary recipient wallets, and native-USDC transfers through the checkout flow. Merchant invoice creation requires an admin login; reviewer receipt inspection does not.
+- Current scope: one operator login, one app instance, configurable recipient wallets per invoice, public invoice links, and native-USDC transfers through the checkout flow. Merchant invoice creation requires an admin login; reviewer receipt inspection does not.
 
 Next priorities are continuously automated offsite backups, broader wallet compatibility checks, clearer RPC failure recovery, and database/rate-limit changes before multi-instance use. Refunds, a background chain indexer, contract-wallet internal transfers, and high-volume operation are not implemented. One real payment and the current test suite do not constitute a security audit.
 
-Arc 主网 USDC 收款与对账原型已上线，并已完成一笔真实主网付款验证。活动材料已整理，但仍需在 DoraHacks 提交作品；上线不等于获奖。
+Arc 主网 USDC 收款与对账原型已上线，并已完成一笔真实主网付款验证。
 
 ## 环境
 
@@ -59,7 +60,15 @@ Next.js/TypeScript 同时提供网页和 API，viem 处理钱包与 RPC，Node.j
 
 SQLite 适合一个商户、一个应用副本的演示；使用 WAL、参数化 SQL、交易哈希唯一约束。相比 PostgreSQL 少一个数据库服务，但不适用于多副本部署和大规模并发。保持一个应用实例，不能把同一个 SQLite 卷挂到多个应用副本。
 
-付款使用 Arc 原生 USDC 转账和交易 data 中的订单标识，不新增支付合约。相比托管钱包或自定义支付合约，少了私钥保管与合约维护工作；代价是普通钱包收款、需要经本应用付款流程，手动发送不带订单标识的转账无法自动抵扣。本版不支持合约钱包发起的内部转账、多收款方、退款、付款撤销或离线自动索引。
+付款使用 Arc 原生 USDC 转账和交易 data 中的订单标识，不新增支付合约。相比托管钱包或自定义支付合约，少了私钥保管与合约维护工作；代价是普通钱包收款、需要经本应用付款流程，手动发送不带订单标识的转账无法自动抵扣。本版支持不同订单使用不同收款钱包；不支持单笔订单拆分给多个收款方、合约钱包内部转账、退款、付款撤销或离线自动索引。
+
+## 收付款地址与历史记录
+
+创建订单时填写收款地址；`MERCHANT_ADDRESS` 只是可编辑的默认值。指定付款地址为选填，留空允许任意钱包付款。填写后，钱包连接和发送前会检查账户，服务器也会核对真实交易的 `from`，不接受其他钱包代付。实际付款仍需地址持有人在钱包中签名；仅输入地址不会授权扣款。已创建订单的地址及金额不能修改，请为新收款方创建新订单。
+
+工作台提供历史收款、付款地址及一键复用。收款历史统计创建的订单，付款历史只统计已核验到账的真实付款人，不把指定但未付款的地址当作成功付款人。每类显示最近使用的 100 个不同地址、累计订单数和最后使用时间；统计覆盖整个数据库，订单列表显示最近 200 笔。历史接口需要管理登录且禁止缓存。
+
+升级会自动给原 SQLite 表增加可空的 `expectedPayer` 字段；旧订单保持原收款地址、金额、状态及交易凭证，不新增付款地址限制。地址历史从持久化订单聚合，无新增数据库服务或浏览器本地通讯录。
 
 ## 核对过的网络配置
 

@@ -1,6 +1,19 @@
-import { parseUnits, type Hex } from 'viem';
+import { getAddress, isAddress, zeroAddress, parseUnits, type Hex } from 'viem';
 import { arc, invoiceData } from './arc';
 import type { Invoice } from './models';
+
+export function normalizeAddress(value: unknown, kind: 'recipient' | 'payer') {
+  if (typeof value !== 'string' || !isAddress(value.trim()) || value.trim().toLowerCase() === zeroAddress) {
+    throw new Error(kind === 'recipient' ? '请填写有效的非零收款地址。' : '请填写有效的非零付款地址。');
+  }
+  return getAddress(value.trim());
+}
+
+export function assertPayer(expectedPayer: string | null, actualPayer: string) {
+  if (expectedPayer && expectedPayer.toLowerCase() !== actualPayer.toLowerCase()) {
+    throw new Error('付款钱包与指定付款地址不一致，请切换钱包账户。');
+  }
+}
 
 export function normalizeAmount(value: unknown): string {
   if (typeof value !== 'string' || !/^\d{1,4}(\.\d{1,6})?$/.test(value)) {
@@ -33,6 +46,7 @@ export function validatePayment(invoice: Invoice, e: PaymentEvidence) {
     throw new Error('交易与区块回执不一致。');
   }
   if (e.transaction.to?.toLowerCase() !== invoice.recipient.toLowerCase()) throw new Error('收款地址不匹配。');
+  assertPayer(invoice.expectedPayer, e.transaction.from);
   if (e.transaction.value !== parseUnits(invoice.amount, 18)) throw new Error('付款金额不匹配。');
   if (e.transaction.input.toLowerCase() !== invoiceData(invoice.id).toLowerCase()) throw new Error('交易不属于此订单。');
   if (Number(e.block.timestamp) < Math.floor(invoice.createdAt / 1000)) throw new Error('交易早于订单创建。');

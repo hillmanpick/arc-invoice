@@ -12,7 +12,7 @@ USDC payment links on Arc with invoice-bound transfers and verifiable onchain re
 
 ## Project description
 
-Arc Invoice is a deployed prototype for small merchants who need to match a wallet payment to an invoice. Merchants create an invoice with a fixed amount and recipient, then share a checkout link. Customers confirm a native-USDC transfer from their own wallet on Arc mainnet. The app holds no signing keys or funds.
+Arc Invoice is a deployed prototype for small merchants who need to match a wallet payment to an invoice. Merchants choose an amount and recipient for each invoice, optionally require a specific payer, then share a checkout link. Addresses and amounts are locked when the invoice is created. Customers confirm a native-USDC transfer from their own wallet on Arc mainnet. The app holds no signing keys or funds. Authenticated address history lets merchants reuse previous recipients and verified payers.
 
 Each checkout transfer includes an invoice UUID in its transaction data. The server verifies the network, successful receipt, block consistency, exact recipient and amount, invoice reference, and transaction time before recording payment. A transaction hash cannot settle multiple invoices. Checkout pages automatically show the receipt once the server records payment, and preserve the transaction hash for recovery when available.
 
@@ -49,12 +49,12 @@ Do not pay the completed demonstration invoice again. A reviewer can self-host t
 - Next.js, React and TypeScript implement the UI and server API; viem provides wallet/RPC tooling.
 - String/BigInt amount conversion avoids floating-point accounting. Payment validation rejects wrong networks, incorrect amounts or recipients, failed receipts, stale payments and mismatched invoice references.
 - SQLite WAL, parameterized SQL and a unique transaction hash support persistent reconciliation and duplicate-payment protection. Docker volumes retain application data across container replacement.
-- Five automated payment/database tests, production builds, browser checks and a real mainnet transfer provide separate forms of validation. Full details and limitations are public in VALIDATION.md.
+- Nine automated payment/database tests cover payment validation, required payers, database migration, historical addresses and duplicate settlement. Production builds, browser checks and a real mainnet transfer provide separate forms of validation. Full details and limitations are public in VALIDATION.md.
 - Responsive bilingual UI, automatic order-state checks, transaction-hash recovery and daily integrity-checked backups support the demonstration workflow.
 
 ## Current limitations and next steps
 
-The prototype supports one merchant and one app instance. It does not yet implement refunds, arbitrary transfer matching, contract-wallet internal transfers, a background chain indexer, or continuous offsite backup replication. It has not undergone an independent security audit. Public invoice links expose their invoice details to anyone holding the link.
+The prototype supports one operator login and one app instance, with configurable recipient wallets per invoice. It does not yet implement payment splitting, refunds, arbitrary transfer matching, contract-wallet internal transfers, a background chain indexer, or continuous offsite backup replication. It has not undergone an independent security audit. Public invoice links expose their invoice details, including required and actual payer addresses, to anyone holding the link; global address history requires admin authentication.
 
 Further work would focus on automated offsite recovery, broader wallet testing and RPC recovery, followed by persistent rate limits and database changes if multi-instance operation is needed. No roadmap delivery commitment is implied by this application.
 

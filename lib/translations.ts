@@ -683,3 +683,27 @@ export function translate(locale: Locale, key: string, values: Record<string, st
   if (locale === "en" && key.startsWith("付款链接：")) text = "Payment link: " + key.slice("付款链接：".length);
   return text.replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
 }
+
+const addressTranslations: Record<string, string> = {
+  '选择历史收款地址': 'Choose a previous recipient',
+  '选择历史付款地址': 'Choose a previous payer',
+  '指定付款地址（选填）': 'Required payer address (optional)',
+  '留空则允许任意钱包付款': 'Leave empty to accept any wallet',
+  '指定付款地址后，只接受该钱包的链上付款；付款仍需钱包持有人签名。': 'If specified, only this wallet can settle the invoice. Its owner must still sign the payment.',
+  '每笔新订单可自选收款地址。创建后地址和金额锁定，系统核验实际链上付款。': 'Choose a recipient for each new invoice. Once created, its address and amount are locked and payment is verified onchain.',
+  '地址历史': 'Address history',
+  '展示最近使用的 100 个不同地址；收款历史按创建订单统计，付款历史仅统计已核验到账。': 'Up to 100 recently used addresses per list. Recipient history counts created invoices; payer history counts verified payments only.',
+  '历史收款地址': 'Previous recipients',
+  '历史付款地址': 'Previous payers',
+  '暂无地址记录': 'No address history yet',
+  '{count} 笔订单': '{count} invoices',
+  '使用此地址': 'Use this address',
+  '收付款地址': 'Payment addresses',
+  '指定付款地址': 'Required payer',
+  '实际付款地址': 'Actual payer',
+  '任意钱包': 'Any wallet',
+  '请填写有效的非零收款地址。': 'Enter a valid, non-zero recipient address.',
+  '请填写有效的非零付款地址。': 'Enter a valid, non-zero payer address.',
+  '付款钱包与指定付款地址不一致，请切换钱包账户。': 'The payer does not match the required address. Switch your wallet account.',
+};
+for (const [zh, en] of Object.entries(addressTranslations)) translations[zh] = { en, zh };

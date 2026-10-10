@@ -3,6 +3,7 @@ import { useI18n, LanguageSwitch } from '@/app/components/i18n';
 import { useEffect, useState } from 'react';
 import { createWalletClient, custom, publicActions, parseUnits, parseGwei, type EIP1193Provider, type Hash, type Address } from 'viem';
 import { arc, invoiceData } from '@/lib/arc';
+import { assertPayer } from '@/lib/payment';
 import type { Invoice } from '@/lib/models';
 import { Brand } from '../../components/brand';
 declare global { interface Window { ethereum?: EIP1193Provider } }
@@ -120,7 +121,7 @@ export function Checkout({ initial }: { initial: Invoice }) {
       const wallet = createWalletClient({ transport: custom(provider()) });
       const [address] = await wallet.requestAddresses();
       if (!address) throw new Error('钱包没有提供可用地址。');
-      setAccount(address); setMessage('钱包已连接。请核对订单后付款。');
+      setAccount(address); assertPayer(invoice.expectedPayer, address); setMessage('钱包已连接。请核对订单后付款。');
     } catch (error) { showError(error); }
     finally { setBusy(false); }
   }
@@ -150,6 +151,7 @@ export function Checkout({ initial }: { initial: Invoice }) {
       const [address] = await wallet.requestAddresses();
       if (!address) throw new Error('钱包没有提供可用地址。');
       setAccount(address);
+      assertPayer(invoice.expectedPayer, address);
       if (await wallet.getChainId() !== arc.id) {
         try { await wallet.switchChain({ id: arc.id }); }
         catch (error) {
@@ -178,7 +180,7 @@ export function Checkout({ initial }: { initial: Invoice }) {
       <div className="eyebrow">{t("ORDER SUMMARY")}</div><h2>{invoice.description}</h2><span className="amount-label">{t("应付金额")}</span>
       <div className="payment-amount">{invoice.amount}<span>USDC</span></div>
       <span className={`status ${invoice.status}`}>{invoice.status === 'paid' ? t("已付款 · 链上确认") : t("等待付款")}</span>
-      <dl><dt>{t("收款地址")}</dt><dd className="mono">{invoice.recipient}</dd><dt>{t("订单编号")}</dt><dd className="mono">{invoice.id}</dd><dt>{t("付款网络")}</dt><dd>{t("Arc 主网")}</dd></dl>
+      <dl><dt>{t("收款地址")}</dt><dd className="mono">{invoice.recipient}</dd><dt>{t("指定付款地址")}</dt><dd className="mono">{invoice.expectedPayer || t("任意钱包")}</dd>{invoice.payer && <><dt>{t("实际付款地址")}</dt><dd className="mono">{invoice.payer}</dd></>}<dt>{t("订单编号")}</dt><dd className="mono">{invoice.id}</dd><dt>{t("付款网络")}</dt><dd>{t("Arc 主网")}</dd></dl>
       <div className="summary-note"><span>↗</span><p>{t("钱包直接付款")}<br /><small>{t("此网站不保管你的资金或私钥。")}</small></p></div>
     </aside><section className="checkout card">
       <div className="checkout-section-top"><span className="step-icon">{invoice.status === 'paid' ? '✓' : '◎'}</span><div><h2>{invoice.status === 'paid' ? t("付款凭证") : t("使用钱包支付")}</h2><p className="muted">{invoice.status === 'paid' ? t("这笔订单已通过链上核验。") : t("连接钱包，在 Arc 上完成这笔订单。")}</p></div></div>
