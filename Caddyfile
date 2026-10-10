@@ -1,0 +1,23 @@
+{
+    auto_https disable_redirects
+    servers {
+        max_header_size 16KB
+    }
+}
+
+https://{$SITE_HOST}:8443 {
+    tls {
+        issuer acme {
+            dir https://acme-v02.api.letsencrypt.org/directory
+            disable_tlsalpn_challenge
+        }
+    }
+    request_body {
+        max_size 16KB
+    }
+    reverse_proxy app:3000
+}
+
+http://{$SITE_HOST} {
+    redir https://{$SITE_HOST}:8443{uri} permanent
+}

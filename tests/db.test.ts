@@ -1,0 +1,21 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { database, createInvoice, getInvoice, listInvoices, markPaid } from '../lib/db';
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), 'arc-invoice-test-'));
+after(() => { database().close(); rmSync(process.env.DATA_DIR!, { recursive: true, force: true }); });
+test('paid receipt is idempotent and a hash cannot settle a second invoice', () => {
+  const first = createInvoice('first', '0.01', '0x1111111111111111111111111111111111111111');
+  const second = createInvoice('second', '0.01', first.recipient);
+  assert.equal(Object.getPrototypeOf(first), Object.prototype);
+  assert.equal(Object.getPrototypeOf(listInvoices()[0]), Object.prototype);
+  const hash = `0x${'a'.repeat(64)}`;
+  assert.equal(markPaid(first.id, hash, first.recipient, Date.now()).status, 'paid');
+  assert.equal(markPaid(first.id, hash, first.recipient, Date.now()).txHash, hash);
+  assert.throws(() => markPaid(second.id, hash, first.recipient, Date.now()), /另一笔订单/);
+  assert.equal(getInvoice(second.id)?.status, 'pending');
+  assert.throws(() => markPaid(first.id, `0x${'b'.repeat(64)}`, first.recipient, Date.now()), /另一笔交易/);
+  assert.equal(getInvoice(first.id)?.txHash, hash);
+});

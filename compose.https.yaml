@@ -1,0 +1,23 @@
+# Optional HTTPS proxy on port 8443; preserves an existing service on 443.
+# Set SITE_HOST in .env; allow TCP 80 and 8443 in cloud security groups.
+services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_HOST: ${SITE_HOST:?Set SITE_HOST in .env}
+    ports:
+      - "80:80"
+      - "8443:8443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  caddy-data:
+  caddy-config:
