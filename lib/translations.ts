@@ -1,5 +1,9 @@
 export type Locale = "en" | "zh";
 export const translations: Record<string, Record<Locale, string>> = {
+  "暂未确认到账，正在自动重试。请保留交易哈希，不要重复付款。": {
+    "en": "Payment is not confirmed yet. We are retrying automatically. Keep the transaction hash and do not pay again.",
+    "zh": "暂未确认到账，正在自动重试。请保留交易哈希，不要重复付款。"
+  },
   "商户工作台": {
     "en": "Merchant workspace",
     "zh": "商户工作台"

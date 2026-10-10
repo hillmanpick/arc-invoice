@@ -154,6 +154,10 @@ The interface defaults to English. Use **EN / 中文** in the header to switch i
 
 首页、商户工作台、付款页、未找到订单页和应用错误提示支持中英文。日期跟随所选语言格式显示。翻译表位于 `lib/translations.ts`，React Context 共享语言状态，无外部翻译 API 或新增依赖。订单说明等用户输入内容保持原文；第三方钱包自身提示由钱包控制。
 
+## Automatic payment updates
+
+Pending checkout pages read the latest invoice every four seconds while visible, and immediately when returning to the tab. A confirmed invoice switches to its receipt automatically and stops polling. These reads bypass caches and do not require a locally saved transaction hash. If a hash is available, onchain verification continues after temporary RPC failures, slowing to once every 30 seconds after the first 12 attempts. Invalid transactions are not retried.
+
 ## 活动提交说明模板
 
 项目名称：Arc Invoice

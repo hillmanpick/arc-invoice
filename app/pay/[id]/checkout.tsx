@@ -28,6 +28,58 @@ export function Checkout({ initial }: { initial: Invoice }) {
     return () => window.removeEventListener('eip6963:announceProvider', discover);
   }, [storageKey]);
   useEffect(() => {
+    if (invoice.status === 'paid') return;
+    let cancelled = false;
+    let inFlight = false;
+    let confirmed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let request: AbortController | undefined;
+
+    async function refreshInvoice() {
+      if (cancelled || confirmed || inFlight || document.visibilityState === 'hidden') return;
+      inFlight = true;
+      request = new AbortController();
+      const timeout = setTimeout(() => request?.abort(), 10000);
+      try {
+        const response = await fetch(`/api/invoices/${invoice.id}`, {
+          cache: 'no-store', signal: request.signal,
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (!cancelled && result.invoice?.status === 'paid') {
+          confirmed = true;
+          setInvoice(result.invoice);
+          setMessage('到账已确认。');
+          try { localStorage.removeItem(storageKey); } catch { /* Recovery is optional. */ }
+          return;
+        }
+      } catch {
+        // Keep checking after transient network failures or a request timeout.
+      } finally {
+        clearTimeout(timeout);
+        inFlight = false;
+        if (!cancelled && !confirmed && !document.hidden) {
+          timer = setTimeout(refreshInvoice, 4000);
+        }
+      }
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        if (timer) clearTimeout(timer);
+        void refreshInvoice();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    void refreshInvoice();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      request?.abort();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [invoice.id, invoice.status, storageKey]);
+  useEffect(() => {
     if (!/^0x[a-fA-F0-9]{64}$/.test(hash) || invoice.status === 'paid') return;
     let cancelled = false;
     let attempts = 0;
@@ -47,11 +99,11 @@ export function Checkout({ initial }: { initial: Invoice }) {
           return;
         }
         if (response.status !== 429 && response.status !== 503) { setMessage(result.error || '核验失败。'); return; }
-        if (attempts >= 12) { setMessage(result.error || '暂未确认到账。请保留哈希，稍后手动核验。'); return; }
+        if (attempts >= 12) setMessage('暂未确认到账，正在自动重试。请保留交易哈希，不要重复付款。');
       } catch {
-        if (attempts >= 12) { if (!cancelled) setMessage('暂时无法核验。请保留哈希，稍后重试。'); return; }
+        if (attempts >= 12 && !cancelled) setMessage('暂未确认到账，正在自动重试。请保留交易哈希，不要重复付款。');
       }
-      if (!cancelled) timer = setTimeout(poll, 5000);
+      if (!cancelled) timer = setTimeout(poll, attempts < 12 ? 5000 : 30000);
     }
     timer = setTimeout(poll, 3000);
     return () => { cancelled = true; clearTimeout(timer); };
